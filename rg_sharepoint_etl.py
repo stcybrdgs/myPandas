@@ -63,6 +63,7 @@ def main():
     # define imports
     og_file = r'C:\Users\stacy\My WrWx\00_projects\reservoirGroup\Adam\Oil and Gas PIN System Summary Dashboard.xlsx'
     sheet_name='PIN Data'
+    pandas_file = 'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
 
     # perform imports
     data = pd.read_excel(og_file, sheet_name)
@@ -117,61 +118,87 @@ def main():
     # iterate over the og lists, perform transformations, and load into sp lists
     for i in data.index:
         # ID
-        nuId = str(pinId[i]) + ':PIN'
-        id.append(nuId)  # c1: leave blank (there are dupe ids btw sp and og)
-
+        #nuId = str(pinId[i]) + ':PIN'
+        #id.append(nuId)  # c1: leave blank (there are dupe ids btw sp and og)
+        '''
         # GeoMarket
         geoMarket.append()
+
         # Country
         country.append()
+
         # Region
         region.append()
+
         # Product Line
         productLine.append()
+
         # IncidentType
         incidentType.append()
+
         # FormStatus
         formStatus.append()
+
         # Description
         description.append()
+
         # IncidentDate
         incidentDate.append()
+
         # EmploymentType
         employmentType.append()
+
         # InjuryNature
         injuryNature.append()
+
         # RiskRanking
         riskRanking.append()
+
         # RiskRating
         riskRating.append()
+
         # Root Cause(5 Why's)
         rootCause.append()
+
         # Created By
         createdBy.append()
+
         # FormSubmittedBy
         formSubmittedBy.append()
+
         # QHSE Report Workflow
         qhseReportWorkflow.append()
+
         # InjuryLocation
         injuryLocation.append()
+
         # InjuryNatureMechanism
         injuryNatureMechanism.append()
+
         # Primary Root Cause
         primaryRootCause.append()
+
         # NonProductiveTime
         nonProductiveTime.append()
+
         # Test XML
         testXML.append()
+
         # PINType
         pinType.append()
+
         # Cost of Poor Quality (USD)
         costOfPoorQuality.append()
+
         # Job Number
         jobNumber.append()
+
         # Item Type
         itemType.append()
+
         # Path
         path.append()
+        '''
 
 
 
@@ -213,6 +240,41 @@ def main():
     writer2.save()
     '''
 
+    # set data frame to be written to xls
+    #geoMarket.append('US')  # test
+
+    # populate data frame columns
+    keys = [
+        'ID','GeoMarket','Country','Region','Product Line','IncidentType',
+        'FormStatus','Description','IncidentDate','EmploymentType','InjuryNature',
+        'RiskRanking','RiskRating','Root Cause(5 Why\'s)','Created By',
+        'FormSubmittedBy','QHSE Report Workflow','InjuryLocation',
+        'InjuryNatureMechanism','Primary Root Cause','NonProductiveTime',
+        'Test XML','PINType','Cost of Poor Quality (USD)','Job Number',
+        'Item Type','Path'
+    ]
+    values = [
+        id,geoMarket,country,region,productLine,incidentType,
+        formStatus,description,incidentDate,employmentType,injuryNature,
+        riskRanking,riskRating,rootCause,createdBy,formSubmittedBy,
+        qhseReportWorkflow,injuryLocation,injuryNatureMechanism,
+        primaryRootCause,nonProductiveTime,testXML,pinType,
+        costOfPoorQuality,jobNumber,itemType,path
+    ]
+
+    df_dict = {}
+    i = 0
+    for k in keys:
+        df_dict.update({keys[i]:values[i]})
+        i += 1
+
+
+    df = pd.DataFrame(df_dict)  # create dataframe
+    writer = pd.ExcelWriter(pandas_file)  # create excel writer
+    df.to_excel(writer, 'Historical PIN Sys Data', index=False)  # convert dataframe to xlswriter excel object
+    writer.save()  # close the writer and export the excel file
+
+    print(df_dict)
     print('Done.')
 
 
