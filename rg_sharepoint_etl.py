@@ -4,7 +4,7 @@ Stacy Bridges
 
 rg_sharepoint_etl.py
 
-import cols from OG:
+import cols from oil and gas (og) sheet:
 'Risk'  # map to sp c12
 'Region'  # use for sp c2/c3/c5
 'Company'  # concat with region to get sp c5 'Product Line'
@@ -15,7 +15,7 @@ import cols from OG:
 'NonProductiveTime'  # use for sp 21 'NonProductiveTime' (precision 0 -> precision 2)
 'Status'  # sp 7 'FormStatus' (see logic below)
 
-export arrays:
+export arrays for new sharepoint (sp)) sheet:
 id = []  # c1: leave blank (there are dupe ids btw sp and og)
 geoMarket = []  # c2: use lookups from ps geomarket worksheet
 country  = []  # c3: use lookups from ps geomarket worksheet
@@ -66,11 +66,12 @@ def main():
 
     # perform imports
     data = pd.read_excel(og_file, sheet_name)
-    p# rint (data)  # print a summary table of the xlsx contents
+    # print (data)  # print a summary table of the xlsx contents
     # print('Col Headers:\n', data.columns)  # print a list of the headers
     # print(data['Region'])  # print all rows within a column as a list
 
     # take the target og cols and put them into lists
+    pinId = data['PinID']
     risk = data['Risk']  # map to sp c12
     region = data['Region']  # use for sp c2/c3/c5
     company = data['Company'] # concat with region to get sp c5 'Product Line'
@@ -113,10 +114,70 @@ def main():
     itemType = []  # c26: all fields say 'item' (leave blank or fill in?) / no mapping
     path = []  # c27: all fields say 'sites/TheRigUp/Lists/IncidentReports' (leave blank or fill in?) / no mapping
 
-    # iterate over the region list from above using a loop
+    # iterate over the og lists, perform transformations, and load into sp lists
     for i in data.index:
-        print(data['Region'][i])
+        # ID
+        nuId = str(pinId[i]) + ':PIN'
+        id.append(nuId)  # c1: leave blank (there are dupe ids btw sp and og)
 
+        # GeoMarket
+        geoMarket.append()
+        # Country
+        country.append()
+        # Region
+        region.append()
+        # Product Line
+        productLine.append()
+        # IncidentType
+        incidentType.append()
+        # FormStatus
+        formStatus.append()
+        # Description
+        description.append()
+        # IncidentDate
+        incidentDate.append()
+        # EmploymentType
+        employmentType.append()
+        # InjuryNature
+        injuryNature.append()
+        # RiskRanking
+        riskRanking.append()
+        # RiskRating
+        riskRating.append()
+        # Root Cause(5 Why's)
+        rootCause.append()
+        # Created By
+        createdBy.append()
+        # FormSubmittedBy
+        formSubmittedBy.append()
+        # QHSE Report Workflow
+        qhseReportWorkflow.append()
+        # InjuryLocation
+        injuryLocation.append()
+        # InjuryNatureMechanism
+        injuryNatureMechanism.append()
+        # Primary Root Cause
+        primaryRootCause.append()
+        # NonProductiveTime
+        nonProductiveTime.append()
+        # Test XML
+        testXML.append()
+        # PINType
+        pinType.append()
+        # Cost of Poor Quality (USD)
+        costOfPoorQuality.append()
+        # Job Number
+        jobNumber.append()
+        # Item Type
+        itemType.append()
+        # Path
+        path.append()
+
+
+
+    print(id)
+
+    '''
     nu_region = []
     nu_company = []
     nu_raisedBy = []
@@ -150,6 +211,7 @@ def main():
     writer2 = pd.ExcelWriter(pandas_file_2)
     df2.to_excel(writer2, 'Historical PIN and HSE', index=False)
     writer2.save()
+    '''
 
     print('Done.')
 
