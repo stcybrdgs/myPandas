@@ -1,51 +1,10 @@
 """
+compatible with Python 3+
+
 08/05/2019
 Stacy Bridges
 
 rg_sharepoint_etl.py
-
-import cols from oil and gas (og) sheet:
-'Risk'  # map to sp c12
-'Region'  # use for sp c2/c3/c5
-'Company'  # concat with region to get sp c5 'Product Line'
-'Details'  # use for sp c8 'Description'
-'RaisedBy'  # use for sp c15 'Created By'
-'OccuranceDate'  # use for sp c9 'Incident Date'
-'RootCauseName'  # use for sp 14 'Root Cause(5 Why's)'
-'NonProductiveTime'  # use for sp 21 'NonProductiveTime' (precision 0 -> precision 2)
-'Status'  # sp 7 'FormStatus' (see logic below)
-
-export arrays for new sharepoint (sp)) sheet:
-id = []  # c1: leave blank (there are dupe ids btw sp and og)
-geoMarket = []  # c2: use lookups from ps geomarket worksheet
-country  = []  # c3: use lookups from ps geomarket worksheet
-region = []  # c4: blank
-productLine = []  # c5: concat from ogcompany (6): ogregion (3) (may affect dashboard)
-incidentType = []  # c6: blank
-formStatus = []  # c7: direct map to OG71, should some OPENS be closed (now that they are old)?
-description = []  # c8: og8 Details
-incidentDate = []  # c9: see date overlaps in notes sheet
-employmentType = []  # c10: no direct mapping / leave blank
-injuryNature = []  # c11: no direct mapping / leave blank
-riskRanking = []  # c12: og 2 Risk maps to SP 12
-riskRating = []  # c13: if riskRanking is L, M, H and if L=0-4, M=6-9, H=10-15, how to determine #? (for now, use min # in each rank cat)
-rootCause = []  # c14: use og 58 (note: not all descriptions in og line up with descriptions in sp)
-createdBy = []  # c15: og 10 raised by
-formSubmittedBy = []  # c16: blank
-qhseReportWorkflow = []  # c17: use og 7:
-                        # og Closed = sp Completed
-                        # og In progress = sp In Progress
-                        # og Error, For Action = sp Waiting For closed
-injuryLocation = []  # c18: no direct mapping, leave blank
-injuryNatureMechanism = []  # c19: no direct mapping, leave blank
-primaryRootCause = []  # c20: all values null, no mapping
-nonProductiveTime = []  # c21: clock hours in 60/100 format, precision = 2
-testXML = []  # c22: blank
-pinType = []  # c23: an issue type / see sheet PS PINType ; no direct mapping
-costOfPoorQuality = []  # c24: dollar cost / float value, precision = 2 / use OG 18 or 19 or leave blank?
-jobNumber = []  # c25: no direct mapping --> leave blank
-itemType = []  # c26: all fields say 'item' (leave blank or fill in?) / no mapping
-path = []  # c27: all fields say 'sites/TheRigUp/Lists/IncidentReports' (leave blank or fill in?) / no mapping
 
 """
 # IMPORTS  =====================================
@@ -54,9 +13,6 @@ import pandas as pd
 from pandas import ExcelWriter
 from pandas import ExcelFile
 import numpy as np
-
-# FUNCTIONS  ===================================
-
 
 # MAIN  ========================================
 def main():
@@ -72,7 +28,7 @@ def main():
     # print(data['Region'])  # print all rows within a column as a list
 
     # take the target og cols and put them into lists
-    pinId = data['PinID']
+    pinId = data['PinID']  # make unique or leave blank
     risk = data['Risk']  # map to sp c12
     region = data['Region']  # use for sp c2/c3/c5
     company = data['Company'] # concat with region to get sp c5 'Product Line'
@@ -84,7 +40,7 @@ def main():
     status = data['Status']  # sp 7 'FormStatus' (see logic below)
 
     # create target cols fro final data DataFrame
-    id = []  # c1: leave blank (there are dupe ids btw sp and og)
+    id = []  # c1: make unique or leave blank (there are dupe ids btw sp and og)
     geoMarket = []  # c2: use lookups from ps geomarket worksheet
     country  = []  # c3: use lookups from ps geomarket worksheet
     region = []  # c4: blank
@@ -116,132 +72,114 @@ def main():
     path = []  # c27: all fields say 'sites/TheRigUp/Lists/IncidentReports' (leave blank or fill in?) / no mapping
 
     # iterate over the og lists, perform transformations, and load into sp lists
+    j = 0
     for i in data.index:
         # ID
-        #nuId = str(pinId[i]) + ':PIN'
-        #id.append(nuId)  # c1: leave blank (there are dupe ids btw sp and og)
-        '''
+        # I assume you will create a unique ID for each record when you import
+        # into SharePoint. I noticed there are duplicative IDs between the SharePoint
+        # query and the PINSys data, so I for now I simply created a unique ID based on the PinID.
+        # The other option was to leave the ID blank.
+        nuId = str(pinId[i]) + ':PIN'
+        id.append(nuId)  # c1: make unique or leave blank (there are dupe ids btw sp and og)
+
         # GeoMarket
-        geoMarket.append()
+        geoMarket.append(str(j))
 
         # Country
-        country.append()
+        country.append(str(j))
 
         # Region
-        region.append()
+        # c4: blank
+        region.append('')
 
         # Product Line
-        productLine.append()
+        productLine.append(str(j))
 
         # IncidentType
-        incidentType.append()
+        incidentType.append(str(j))
 
         # FormStatus
-        formStatus.append()
+        formStatus.append(str(j))
 
         # Description
-        description.append()
+        description.append(str(j))
 
         # IncidentDate
-        incidentDate.append()
+        incidentDate.append(str(j))
 
         # EmploymentType
-        employmentType.append()
+        employmentType.append(str(j))
 
         # InjuryNature
-        injuryNature.append()
+        injuryNature.append(str(j))
 
         # RiskRanking
-        riskRanking.append()
+        riskRanking.append(str(j))
 
         # RiskRating
-        riskRating.append()
+        riskRating.append(str(j))
 
         # Root Cause(5 Why's)
-        rootCause.append()
+        rootCause.append(str(j))
 
         # Created By
-        createdBy.append()
+        createdBy.append(str(j))
 
         # FormSubmittedBy
-        formSubmittedBy.append()
+        # Did not see a direct mapping between SharePoint query and PINSys data.
+        # Can easily do something different if needed
+        formSubmittedBy.append('')
 
         # QHSE Report Workflow
-        qhseReportWorkflow.append()
+        qhseReportWorkflow.append(str(j))
 
         # InjuryLocation
-        injuryLocation.append()
+        # Did not see a direct mapping between SharePoint query and PINSys data.
+        # Can easily do something different if needed
+        injuryLocation.append('')
 
         # InjuryNatureMechanism
-        injuryNatureMechanism.append()
+        # Did not see a direct mapping between SharePoint query and PINSys data.
+        # Can easily do something different if needed
+        injuryNatureMechanism.append('')
 
         # Primary Root Cause
-        primaryRootCause.append()
+        # All records for this field are blank in the SharePoint query,
+        # so I left them blank for the PINSys Data as well.
+        primaryRootCause.append('')
 
         # NonProductiveTime
-        nonProductiveTime.append()
+        nonProductiveTime.append(str(j))
 
         # Test XML
-        testXML.append()
+        # All records for this field are blank in the SharePoint query,
+        # so I left them blank for the PINSys Data as well.
+        testXML.append('')
 
         # PINType
-        pinType.append()
+        pinType.append(str(j))
 
         # Cost of Poor Quality (USD)
-        costOfPoorQuality.append()
+        costOfPoorQuality.append(str(j))
 
         # Job Number
-        jobNumber.append()
+        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # so left this field blank. Can easily do something different if needed.
+        jobNumber.append('')
 
         # Item Type
-        itemType.append()
+        # All records for this field in the SharePoint query say 'Item,' so I
+        # continued the pattern with the PINSys Data. No other mapping option was observed.
+        itemType.append(str(j))
 
         # Path
-        path.append()
-        '''
+        # All records for this field in the SharePoint query say
+        # 'sites/TheRigUp/Lists/IncidentReports'. I did not observe any other
+        # mapping option, so I chose to leave this one blank. Can easily do
+        # something different if needed.
+        path.append('')
 
-
-
-    print(id)
-
-    '''
-    nu_region = []
-    nu_company = []
-    nu_raisedBy = []
-
-    i = 0
-    for item in region:
-        if i == 10:
-            nu_region.append('Bananas')
-            nu_company.append('Apples')
-            nu_raisedBy.append ('ORanges')
-        else:
-            nu_region.append(region[i])
-            nu_company.append(company[i])
-            nu_raisedBy.append(raisedBy[i])
-        i += 1
-
-    # show a subtable of the imported excel file
-    df = pd.DataFrame(data, columns = ['PinID',	'Risk',	'Region', 'Company'])
-    print(df)
-
-    # pandas output
-    pandas_file = 'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pandas_test.xlsx'
-    pandas_file_2 = 'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pandas_test_apples.xlsx'
-    pandas_file_3 = 'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/historical_pin_hse.xlsx'
-
-    writer = pd.ExcelWriter(pandas_file)
-    df.to_excel(writer,'PIN_Data', index=False)
-    writer.save()
-
-    df2 = pd.DataFrame({ 'Region':nu_region, 'Company':nu_company, 'RaisedBy':nu_raisedBy})
-    writer2 = pd.ExcelWriter(pandas_file_2)
-    df2.to_excel(writer2, 'Historical PIN and HSE', index=False)
-    writer2.save()
-    '''
-
-    # set data frame to be written to xls
-    #geoMarket.append('US')  # test
+        j += 1
 
     # populate data frame columns
     keys = [
@@ -268,7 +206,6 @@ def main():
         df_dict.update({keys[i]:values[i]})
         i += 1
 
-
     df = pd.DataFrame(df_dict)  # create dataframe
     writer = pd.ExcelWriter(pandas_file)  # create excel writer
     df.to_excel(writer, 'Historical PIN Sys Data', index=False)  # convert dataframe to xlswriter excel object
@@ -276,6 +213,5 @@ def main():
 
     print(df_dict)
     print('Done.')
-
 
 if __name__ == '__main__': main()
