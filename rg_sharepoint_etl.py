@@ -18,60 +18,55 @@ import datetime
 # MAIN  ========================================
 def main():
     # define imports
+    # og refers to 'Oil & Gas,' or the PINSys xlsx
     og_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/Oil and Gas PIN System Summary Dashboard.xlsx'
-    sheet_name='PIN Data'
+    sheet_name='PIN Data'  # worksheet name in PINSys xlsx
     pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
 
     # perform imports
     data = pd.read_excel(og_file, sheet_name)
-    # print (data)  # print a summary table of the xlsx contents
-    # print('Col Headers:\n', data.columns)  # print a list of the headers
-    # print(data['Region'])  # print all rows within a column as a list
 
-    # take the target og cols and put them into lists
-    pinId = data['PinID']  # make unique or leave blank
-    risk = data['Risk']  # map to sp c12
-    region_pin = data['Region']  # use for sp c2/c3/c5
-    company = data['Company'] # concat with region to get sp c5 'Product Line'
-    details = data['Details']  # use for sp c8 'Description'
-    raisedBy = data['RaisedBy']  # use for sp c15 'Created By'
-    occuranceDate = data['OccuranceDate']  # use for sp c9 'Incident Date'
-    dollarCost = data['DollarCost']  # use for sp c24 'Cost of Poor Quality (USD)'
-    rootCause_pin = data['RootCause'] # use for sp 14 'Root Cause(5 Why's)'
-    nonProductiveTime_pin = data['NonProductiveTime']  # use for sp 21 'NonProductiveTime' (precision 0 -> precision 2)
-    status = data['Status']  # sp 7 'FormStatus' (see logic below)
+    # take the data from target PINSys columns and put them into lists
+    pinId = data['PinID']
+    risk = data['Risk']
+    region_pin = data['Region']
+    company = data['Company']
+    details = data['Details']
+    raisedBy = data['RaisedBy']
+    occuranceDate = data['OccuranceDate']
+    dollarCost = data['DollarCost']
+    rootCause_pin = data['RootCause']
+    nonProductiveTime_pin = data['NonProductiveTime']
+    status = data['Status']
 
-    # create target cols fro final data DataFrame
-    id = []  # c1: make unique or leave blank (there are dupe ids btw sp and og)
-    geoMarket = []  # c2: use lookups from ps geomarket worksheet
-    country  = []  # c3: use lookups from ps geomarket worksheet
-    region = []  # c4: blank
-    productLine = []  # c5: concat from ogcompany (6): ogregion (3) (may affect dashboard)
-    incidentType = []  # c6: blank
-    formStatus = []  # c7: direct map to OG71, should some OPENS be closed (now that they are old)?
-    description = []  # c8: og8 Details
-    incidentDate = []  # c9: see date overlaps in notes sheet
-    employmentType = []  # c10: no direct mapping / leave blank
-    injuryNature = []  # c11: no direct mapping / leave blank
-    riskRanking = []  # c12: og 2 Risk maps to SP 12
-    riskRating = []  # c13: if riskRanking is L, M, H and if L=0-4, M=6-9, H=10-15, how to determine #? (for now, use min # in each rank cat)
-    rootCause = []  # c14: use og 58 (note: not all descriptions in og line up with descriptions in sp)
-    createdBy = []  # c15: og 10 raised by
-    formSubmittedBy = []  # c16: blank
-    qhseReportWorkflow = []  # c17: use og 7:
-                             # og Closed = sp Completed
-                             # og In progress = sp In Progress
-                             # og Error, For Action = sp Waiting For closed
-    injuryLocation = []  # c18: no direct mapping, leave blank
-    injuryNatureMechanism = []  # c19: no direct mapping, leave blank
-    primaryRootCause = []  # c20: all values null, no mapping
-    nonProductiveTime = []  # c21: clock hours in 60/100 format, precision = 2
-    testXML = []  # c22: blank
-    pinType = []  # c23: an issue type / see sheet PS PINType ; no direct mapping
-    costOfPoorQuality = []  # c24: dollar cost / float value, precision = 2 / use OG 18 or 19 or leave blank?
-    jobNumber = []  # c25: no direct mapping --> leave blank
-    itemType = []  # c26: all fields say 'item' (leave blank or fill in?) / no mapping
-    path = []  # c27: all fields say 'sites/TheRigUp/Lists/IncidentReports' (leave blank or fill in?) / no mapping
+    # create arrays to contain column data for output file in the sharepoint format
+    id = []
+    geoMarket = []
+    country = []
+    region = []
+    productLine = []
+    incidentType = []
+    formStatus = []
+    description = []
+    incidentDate = []
+    employmentType = []
+    injuryNature = []
+    riskRanking = []
+    riskRating = []
+    rootCause = []
+    createdBy = []
+    formSubmittedBy = []
+    qhseReportWorkflow = []
+    injuryLocation = []
+    injuryNatureMechanism = []
+    primaryRootCause = []
+    nonProductiveTime = []
+    testXML = []
+    pinType = []
+    costOfPoorQuality = []
+    jobNumber = []
+    itemType = []
+    path = []
 
     # iterate over the og lists, perform transformations, and load into sp lists
     j = 0
@@ -82,23 +77,69 @@ def main():
         # query and the PINSys data, so I for now I simply created a unique ID based on the PinID.
         # The other option was to leave the ID blank.
         nuId = str(pinId[i]) + ':PIN'
-        id.append(nuId)  # c1: make unique or leave blank (there are dupe ids btw sp and og)
+        id.append(nuId)
 
         # GeoMarket
-        geoMarket.append(str(j))
+        ogRegion = [
+            'Africa', 'Blackburn - UK', 'Brazil', 'Canada',
+            'Caribbean', 'Columbia', 'East Australia',
+            'Europe, Caspian, Russia', 'Holland, Assen', 'KSA',
+            'KSA - Dammam', 'Kuwait', 'Middle East', 'Peru',
+            'Singapore', 'South Australia', 'UAE', 'UK, Inverkeithing',
+            'USA - General', 'Vietnam', 'West  Australia'
+        ]
+        spGeoMarket = [
+            'Africa', 'Europe - CIS', 'Latin America', 'North America',
+            'Latin America', 'Latin America', 'Asia Pacific',
+            'Europe - CIS', 'Europe - CIS', 'Middle East', 'Middle East',
+            'Middle East', 'Middle East', 'Latin America', 'Asia Pacific',
+            'Asia Pacific', 'Middle East', 'Europe - CIS', 'North America',
+            'Asia Pacific', 'Asia Pacific'
+        ]
+        if region_pin[j] != '':
+            # find the region string in ogRegion and return the string from the
+            # same position in spGeoMarket
+            gm_index = ogRegion.index(region_pin[j])
+            geoMarket.append(spGeoMarket[gm_index])
+        else:
+            # if the region is empty, put null in geoMarket
+            geoMarket.append('')
 
         # Country
-        country.append(str(j))
+        spCountry = [
+            '', 'UK', 'Brazil', 'Canada', 'Caribbean', 'Colombia', 'Australia',
+            '', 'Netherlands', 'Saudi Arabia', 'Saudi Arabia', 'Kuwait', '',
+            'Peru', 'Singapore', 'Australia', 'UAE', 'Inverkeithing', 'USA',
+            'Vietnam', 'Australia'
+        ]
+        if region_pin[j] != '':
+            # find the region string in ogRegion and return the string from the
+            # same position in spGeoMarket
+            country_index = ogRegion.index(region_pin[j])
+            country.append(spCountry[country_index])
+        else:
+            # if the region is empty, put null in geoMarket
+            country.append('')
 
         # Region
-        # c4: blank
-        region.append('')
+        # I noticed the Region designation in SharePoint data is at the city
+        # level, but in the PINSys data it is not, with the exception of
+        # Assen, Holland. As a result, there is no way to consistently map
+        # Region from PINSys to SharePoint data. I opted to leave all Region
+        # records blank with the exception of Assen. Can easily do something
+        # different if needed.
+        if region[j] == 'Assen':
+            region.append('Assen')
+        else:
+            region.append('')
 
         # Product Line
         productLine.append(str(j))
 
         # IncidentType
-        incidentType.append(str(j))
+        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # so left this field blank. Can easily do something different if needed.
+        incidentType.append('')
 
         # FormStatus
         # This field in the SharePoint query has been mapped directly to the
@@ -107,7 +148,9 @@ def main():
         formStatus.append(status[j])
 
         # Description
-        description.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the field
+        # 'Details' in the PINSys data
+        description.append(details[j])
 
         # IncidentDate
         # his field in the SharePoint query has been mapped directly to the
@@ -117,7 +160,9 @@ def main():
         incidentDate.append(x.strftime('%m/%d/%Y'))
 
         # EmploymentType
-        employmentType.append(str(j))
+        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # so left this field blank. Can easily do something different if needed.
+        employmentType.append('')
 
         # InjuryNature
         # Did not see a direct mapping between SharePoint query and PINSys data,
@@ -125,10 +170,23 @@ def main():
         injuryNature.append('')
 
         # RiskRanking
-        riskRanking.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the
+        # field 'Risk' in the PINSys data.
+        riskRanking.append(risk[j])
 
         # RiskRating
-        riskRating.append(str(j))
+        # No equivalent field observed in PINSys data for this SharePoint field.
+        # So, based on the existing Risk Rating ranges Low (0-4), Medium (5-9),
+        # High (10-15), I interpreted a Risk Rating by using the lowest number
+        # of the range for each Risk Rank (ie, Low=0, Medium=5, High=10).
+        if risk[j] == 'Low':
+            riskRating.append('0')
+        elif risk[j] == 'Medium':
+            riskRating.append('5')
+        elif risk[j] == 'High':
+            riskRating.append('10')
+        else:
+            riskRating.append('')
 
         # Root Cause(5 Why's)
         # This field in the SharePoint query has been mapped directly to the
@@ -181,7 +239,9 @@ def main():
         testXML.append('')
 
         # PINType
-        pinType.append(str(j))
+        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # so left this field blank. Can easily do something different if needed.
+        pinType.append('')
 
         # Cost of Poor Quality (USD)
         # This field in the SharePoint query has been mapped directly to the
