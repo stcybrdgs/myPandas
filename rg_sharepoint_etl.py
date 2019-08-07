@@ -1,9 +1,6 @@
 """
-compatible with Python 3+
-
-08/05/2019
-Stacy Bridges
-
+WrWx ETL Script
+This script is compatible with Python 3+
 rg_sharepoint_etl.py
 
 """
@@ -17,8 +14,8 @@ import datetime
 
 # MAIN  ========================================
 def main():
-    # define imports
-    # og refers to 'Oil & Gas,' or the PINSys xlsx
+    # define import/export files/worksheets
+    # rem og refers to 'Oil & Gas,' or the PINSys xlsx
     og_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/Oil and Gas PIN System Summary Dashboard.xlsx'
     sheet_name='PIN Data'  # worksheet name in PINSys xlsx
     pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
@@ -125,16 +122,25 @@ def main():
         # I noticed the Region designation in SharePoint data is at the city
         # level, but in the PINSys data it is not, with the exception of
         # Assen, Holland. As a result, there is no way to consistently map
-        # Region from PINSys to SharePoint data. I opted to leave all Region
-        # records blank with the exception of Assen. Can easily do something
-        # different if needed.
-        if region[j] == 'Assen':
-            region.append('Assen')
-        else:
-            region.append('')
+        # Region from PINSys to SharePoint data. I opted to go ahead and use the
+        # PINSys Region designation despite the inconsistency because it can
+        # be easily removed if it causes an issue.
+        region.append(region_pin[j])
 
         # Product Line
-        productLine.append(str(j))
+        # As with Region, there is no way to consistently map PINSys data to
+        # SharePoint data because SharePoint designation for Region is at the
+        # city level and PINSys data is not. For Product Line, I opted to concatenate
+        # PINSys Region and Company despite the inconsistency, again feeling
+        # that the records can be easily removed if they cause an  issue due to
+        # the inconsistency.
+        trunc_company = ''
+        if company[j] == 'RC- Reservoir Laboratories':
+            trunc_company = company[j][4:len(company[j])]
+        else:
+            trunc_company = company[j][5:len(company[j])]
+        pl_string = trunc_company + '-' + region[j]
+        productLine.append(pl_string)
 
         # IncidentType
         # Did not see a direct mapping between SharePoint query and PINSys data,
@@ -257,7 +263,7 @@ def main():
         # Item Type
         # All records for this field in the SharePoint query say 'Item,' so I
         # continued the pattern with the PINSys Data. No other mapping option was observed.
-        itemType.append(str(j))
+        itemType.append('Item')
 
         # Path
         # All records for this field in the SharePoint query say
@@ -268,7 +274,7 @@ def main():
 
         j += 1
 
-    # populate data frame columns
+    # populate pandas data frame columns
     keys = [
         'ID','GeoMarket','Country','Region','Product Line','IncidentType',
         'FormStatus','Description','IncidentDate','EmploymentType','InjuryNature',
