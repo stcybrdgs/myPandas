@@ -13,13 +13,14 @@ import pandas as pd
 from pandas import ExcelWriter
 from pandas import ExcelFile
 import numpy as np
+import datetime
 
 # MAIN  ========================================
 def main():
     # define imports
-    og_file = r'C:\Users\stacy\My WrWx\00_projects\reservoirGroup\Adam\Oil and Gas PIN System Summary Dashboard.xlsx'
+    og_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/Oil and Gas PIN System Summary Dashboard.xlsx'
     sheet_name='PIN Data'
-    pandas_file = 'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
+    pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
 
     # perform imports
     data = pd.read_excel(og_file, sheet_name)
@@ -30,13 +31,14 @@ def main():
     # take the target og cols and put them into lists
     pinId = data['PinID']  # make unique or leave blank
     risk = data['Risk']  # map to sp c12
-    region = data['Region']  # use for sp c2/c3/c5
+    region_pin = data['Region']  # use for sp c2/c3/c5
     company = data['Company'] # concat with region to get sp c5 'Product Line'
     details = data['Details']  # use for sp c8 'Description'
-    reaisedBy = data['RaisedBy']  # use for sp c15 'Created By'
+    raisedBy = data['RaisedBy']  # use for sp c15 'Created By'
     occuranceDate = data['OccuranceDate']  # use for sp c9 'Incident Date'
-    rootCauseName = data['RootCauseName'] # use for sp 14 'Root Cause(5 Why's)'
-    nonProductiveTime = data['NonProductiveTime']  # use for sp 21 'NonProductiveTime' (precision 0 -> precision 2)
+    dollarCost = data['DollarCost']  # use for sp c24 'Cost of Poor Quality (USD)'
+    rootCause_pin = data['RootCause'] # use for sp 14 'Root Cause(5 Why's)'
+    nonProductiveTime_pin = data['NonProductiveTime']  # use for sp 21 'NonProductiveTime' (precision 0 -> precision 2)
     status = data['Status']  # sp 7 'FormStatus' (see logic below)
 
     # create target cols fro final data DataFrame
@@ -99,19 +101,28 @@ def main():
         incidentType.append(str(j))
 
         # FormStatus
-        formStatus.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the
+        # field 'Status' in the PINSys data (Closed, Error, For Action, In Progress);
+        # observed that some of the Open status may need closure.
+        formStatus.append(status[j])
 
         # Description
         description.append(str(j))
 
         # IncidentDate
-        incidentDate.append(str(j))
+        # his field in the SharePoint query has been mapped directly to the
+        # field 'OccuranceDate' in the PINSys data
+        # mm/dd/yyyy
+        x =occuranceDate[j]
+        incidentDate.append(x.strftime('%m/%d/%Y'))
 
         # EmploymentType
         employmentType.append(str(j))
 
         # InjuryNature
-        injuryNature.append(str(j))
+        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # so left this field blank. Can easily do something different if needed.
+        injuryNature.append('')
 
         # RiskRanking
         riskRanking.append(str(j))
@@ -120,10 +131,14 @@ def main():
         riskRating.append(str(j))
 
         # Root Cause(5 Why's)
-        rootCause.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the
+        # field 'RootCause' in the PINSys data
+        rootCause.append(rootCause_pin[j])
 
         # Created By
-        createdBy.append(str(j))
+        # This field in the SharePoint query has been mapped directly to
+        # the field 'Raised By' in the PINSys data
+        createdBy.append(raisedBy[j].title())  # ensure all names have title case
 
         # FormSubmittedBy
         # Did not see a direct mapping between SharePoint query and PINSys data.
@@ -131,7 +146,13 @@ def main():
         formSubmittedBy.append('')
 
         # QHSE Report Workflow
-        qhseReportWorkflow.append(str(j))
+        # For this field, I used the PINSys data field 'Status' by mapping the
+        # PIN term 'Closed' to the SharePoint term 'Completed' and by mapping
+        # the PIN term'Open' to the SharePoint term 'Waiting for Closed.'
+        if status[j] == 'Open':
+            qhseReportWorkflow.append('Waiting for Closed')
+        elif status[j] == 'Closed':
+            qhseReportWorkflow.append('Completed')
 
         # InjuryLocation
         # Did not see a direct mapping between SharePoint query and PINSys data.
@@ -149,7 +170,10 @@ def main():
         primaryRootCause.append('')
 
         # NonProductiveTime
-        nonProductiveTime.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the
+        # field 'NonProductiveTime' in the PINSys data.
+        # (Clock hours in 100ths, precision = 2)
+        nonProductiveTime.append(nonProductiveTime_pin[j])
 
         # Test XML
         # All records for this field are blank in the SharePoint query,
@@ -160,7 +184,10 @@ def main():
         pinType.append(str(j))
 
         # Cost of Poor Quality (USD)
-        costOfPoorQuality.append(str(j))
+        # This field in the SharePoint query has been mapped directly to the
+        # field 'DollarCost' in the PINSys data, with a type conversion from
+        # precision 0 to precision 2
+        costOfPoorQuality.append(dollarCost[j])
 
         # Job Number
         # Did not see a direct mapping between SharePoint query and PINSys data,
