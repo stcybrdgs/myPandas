@@ -16,26 +16,33 @@ import datetime
 # MAIN  ========================================
 def main():
     # define import/export files/worksheets
-    # rem og refers to 'Oil & Gas,' or the PINSys xlsx
-    og_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/Oil and Gas PIN System Summary Dashboard.xlsx'
-    sheet_name='PIN Data'  # worksheet name in PINSys xlsx
-    pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/pinSys_to_sharePoint.xlsx'
+    # rem hse refers to the 'RG HSE Dashboard' xlsx
+    hse_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/RG HSE Dashboard.xlsx'
+    sheet_name='New Data'  # worksheet name in PINSys xlsx
+    pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/hse_to_sharePoint.xlsx'
 
     # perform imports
-    data = pd.read_excel(og_file, sheet_name)
+    data = pd.read_excel(hse_file, sheet_name)
 
     # take the data from target PINSys columns and put them into lists
-    pinId = data['PinID']
-    risk = data['Risk']
-    region_pin = data['Region']
-    company = data['Company']
-    details = data['Details']
-    raisedBy = data['RaisedBy']
-    occuranceDate = data['OccuranceDate']
-    dollarCost = data['DollarCost']
-    rootCause_pin = data['RootCause']
-    nonProductiveTime_pin = data['NonProductiveTime']
-    status = data['Status']
+    incidentId = data['Incident ID']
+    region_hse = data['Region']
+    injuryNature_hse = data['Injury Nature']
+    incidentType_hse = data['Incident Type']
+    incidentDate_hse = data['Incident Date']
+    incidentTypeOther = data['Incident Type Other']
+    employmentType_hse = data['Employment Type']
+    formClosed = data['Form Closed']
+    injuryLocation_hse = data['Injury Location']
+    injuryMechanism = data['Injury Mechanism']
+    riskRanking_hse = data['Risk Ranking']
+    riskRating_hse = data['Risk Rating']
+    createdBy_hse = data['Created By']
+    incidentTypeOther = data['Incident Type Other']
+    incidentDescription = data['Incident Description']
+    rootCause_hse = data['Root Cause']
+    itemType_hse = data['Item Type']
+    path_qse = data['Path']
 
     # create arrays to contain column data for output file in the sharepoint format
     id = []
@@ -66,212 +73,175 @@ def main():
     itemType = []
     path = []
 
-    # iterate over the og lists, perform transformations, and load into sp lists
+    # iterate over the hse lists, perform transformations, and load into sp lists
     j = 0
     for i in data.index:
         # ID
-        # I assume you will create a unique ID for each record when you import
-        # into SharePoint. I noticed there are duplicative IDs between the SharePoint
-        # query and the PINSys data, so I for now I simply created a unique ID based on the PinID.
-        # The other option was to leave the ID blank.
-        nuId = str(pinId[i]) + ':PIN'
+        # Mapped directly to 'Incident ID' in the HSE data, with the ID
+        # concatenated to an HSE prefix. Can do something different if needed.
+        nuId = 'HSE:' + str(incidentId[j])
         id.append(nuId)
 
         # GeoMarket
-        ogRegion = [
-            'Africa', 'Blackburn - UK', 'Brazil', 'Canada',
-            'Caribbean', 'Columbia', 'East Australia',
-            'Europe, Caspian, Russia', 'Holland, Assen', 'KSA',
-            'KSA - Dammam', 'Kuwait', 'Middle East', 'Peru',
-            'Singapore', 'South Australia', 'UAE', 'UK, Inverkeithing',
-            'USA - General', 'Vietnam', 'West  Australia'
+        # Filled in GeoMarket based upon patterns observed in SharePoint data.
+        hseRegion = [
+            'Aberdeen','Abu Dhabi','Adelaide','Algiers','Assen','Astana','Berlin','Bogota',
+            'Brisbane','Calgary','Cape Town','Dammam','Denver','Dubai','Edmond','Edmonton',
+            'Erbil','Grand Junction','Hermosillo','Houston','Inverkeithing','Kinellar',
+            'Kuwait City','Lima','Luanda','Macae','Midland','Perth','Rosharon','Singapore',
+            'Stavanger','Villa Hermosa','Vung Tao','Youngstown'
         ]
         spGeoMarket = [
-            'Africa', 'Europe - CIS', 'Latin America', 'North America',
-            'Latin America', 'Latin America', 'Asia Pacific',
-            'Europe - CIS', 'Europe - CIS', 'Middle East', 'Middle East',
-            'Middle East', 'Middle East', 'Latin America', 'Asia Pacific',
-            'Asia Pacific', 'Middle East', 'Europe - CIS', 'North America',
-            'Asia Pacific', 'Asia Pacific'
+            'Europe - CIS','Middle East','Asia Pacific','Africa','Europe - CIS',
+            'Europe - CIS','Europe - CIS','Latin America','Australia','North America',
+            'Africa','Middle East','North America','Middle East','','North America',
+            '','','','North America','Europe - CIS','','Middle East','Latin America',
+            'Africa','Latin America','North America','Asia Pacific','',
+            'Asia Pacific','Europe - CIS','','Asia Pacific','North America'
         ]
-        if region_pin[j] != '':
-            # find the region string in ogRegion and return the string from the
+        if region_hse[j] != '':
+            # find the region string in hseRegion and return the string from the
             # same position in spGeoMarket
-            gm_index = ogRegion.index(region_pin[j])
+            gm_index = hseRegion.index(region_hse[j])
             geoMarket.append(spGeoMarket[gm_index])
         else:
             # if the region is empty, put null in geoMarket
             geoMarket.append('')
 
         # Country
+        # Filled in Country based upon patterns observed in SharePoint data.
         spCountry = [
-            '', 'UK', 'Brazil', 'Canada', 'Caribbean', 'Colombia', 'Australia',
-            '', 'Netherlands', 'Saudi Arabia', 'Saudi Arabia', 'Kuwait', '',
-            'Peru', 'Singapore', 'Australia', 'UAE', 'Inverkeithing', 'USA',
-            'Vietnam', 'Australia'
+            'Scotland','UAE','Australia','Algeria','Netherlands','Kazakhstan',
+            'Germany','Colombia','Queenssland','Canada','South Africa',
+            'Saudi Arabia','USA','UAE','','Canada','','','','USA','Scotland','',
+            'Kuwait','Peru','South Africa','Brazil','USA','Australia','','Singapore',
+            'Norway','','Vietnam','USA'
         ]
-        if region_pin[j] != '':
-            # find the region string in ogRegion and return the string from the
+        if region_hse[j] != '':
+            # find the region string in hseRegion and return the string from the
             # same position in spGeoMarket
-            country_index = ogRegion.index(region_pin[j])
+            country_index = hseRegion.index(region_hse[j])
             country.append(spCountry[country_index])
         else:
             # if the region is empty, put null in geoMarket
             country.append('')
 
         # Region
-        # I noticed the Region designation in SharePoint data is at the city
-        # level, but in the PINSys data it is not, with the exception of
-        # Assen, Holland. As a result, there is no way to consistently map
-        # Region from PINSys to SharePoint data. I opted to go ahead and use the
-        # PINSys Region designation despite the inconsistency because it can
-        # be easily removed if it causes an issue.
-        region.append(region_pin[j])
+        # Mapped directly to 'Region' in the HSE data.
+        region.append(region_hse[j])
 
         # Product Line
-        # As with Region, there is no way to consistently map PINSys data to
-        # SharePoint data because SharePoint designation for Region is at the
-        # city level and PINSys data is not. For Product Line, I opted to concatenate
-        # PINSys Region and Company despite the inconsistency, again feeling
-        # that the records can be easily removed if they cause an  issue due to
-        # the inconsistency.
-        trunc_company = ''
-        if company[j] == 'RC- Reservoir Laboratories':
-            trunc_company = company[j][4:len(company[j])]
-        else:
-            trunc_company = company[j][5:len(company[j])]
-        pl_string = trunc_company + '-' + region[j]
-        productLine.append(pl_string)
+        # No direct mapping observed, so left this field blank. Can do something different if needed.
+        productLine.append('')
 
         # IncidentType
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed.
-        incidentType.append('')
+        # Mapped directly to 'Incident Type' in HSE data, but if the type was
+        # 'Other (specify)', then used the value in 'Incident Type Other' instead.
+        if incidentType_hse[j] == 'Other (specify)':
+            incidentType.append(incidentTypeOther[j])
+        else:
+            incidentType.append(incidentType_hse[j])
 
         # FormStatus
-        # This field in the SharePoint query has been mapped directly to the
-        # field 'Status' in the PINSys data (Closed, Error, For Action, In Progress);
-        # observed that some of the Open status may need closure.
-        formStatus.append(status[j])
+        # Mapped this field to 'Form Closed' in HSE data, such that HSE 'True' = 'Closed' and HSE 'False' = 'In Progress'
+        if formClosed[j] == 'True':
+            formStatus.append('Closed')
+        elif formClosed[j] == 'False':
+            formStatus.append('In Progress')
+        else:
+            formStatus.append('')
 
         # Description
-        # This field in the SharePoint query has been mapped directly to the field
-        # 'Details' in the PINSys data
-        description.append(details[j])
+        # Mapped directly to 'Incident Description' in the HSE data.
+        description.append(incidentDescription[j])
 
         # IncidentDate
-        # his field in the SharePoint query has been mapped directly to the
-        # field 'OccuranceDate' in the PINSys data
+        # Mapped directly to 'Incident Date' in HSE data.
         # mm/dd/yyyy
-        x =occuranceDate[j]
+        x = incidentDate_hse[j]
         incidentDate.append(x.strftime('%m/%d/%Y'))
 
         # EmploymentType
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed.
-        employmentType.append('')
+        # Mapped directly to 'Employment Type' in the HSE data.
+        employmentType.append(employmentType_hse[j])
 
         # InjuryNature
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed.
-        injuryNature.append('')
+        # Mapped directly to 'Injury Nature' in the HSE data.
+        injuryNature.append(injuryNature_hse[j])
 
         # RiskRanking
-        # This field in the SharePoint query has been mapped directly to the
-        # field 'Risk' in the PINSys data.
-        riskRanking.append(risk[j])
+        # Mapped directly to 'Risk Ranking' in the HSE data.
+        riskRanking.append(riskRanking_hse[j])
 
         # RiskRating
-        # No equivalent field observed in PINSys data for this SharePoint field.
-        # So, based on the existing Risk Rating ranges Low (0-4), Medium (5-9),
-        # High (10-15), I interpreted a Risk Rating by using the lowest number
-        # of the range for each Risk Rank (ie, Low=0, Medium=5, High=10).
-        if risk[j] == 'Low':
-            riskRating.append('0')
-        elif risk[j] == 'Medium':
-            riskRating.append('5')
-        elif risk[j] == 'High':
-            riskRating.append('10')
-        else:
-            riskRating.append('')
+        # Mapped directly to 'Risk Rating' in the HSE data.
+        riskRating.append(riskRating_hse[j])
 
         # Root Cause(5 Why's)
-        # This field in the SharePoint query has been mapped directly to the
-        # field 'RootCause' in the PINSys data
-        rootCause.append(rootCause_pin[j])
+        # Mapped directly to 'Root Cause' in the HSE data.
+        rootCause.append(rootCause_hse[j])
 
         # Created By
-        # This field in the SharePoint query has been mapped directly to
-        # the field 'Raised By' in the PINSys data
-        createdBy.append(raisedBy[j].title())  # ensure all names have title case
+        # Mapped directly to 'Created By' in the HSE data.
+        createdBy.append(createdBy_hse[j].title())  # ensure all names have title case
 
         # FormSubmittedBy
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed
+        # Did not see a direct mapping between SharePoint query and HSE data,
+        # so left this field blank. Can easily do something different if needed.
         formSubmittedBy.append('')
 
         # QHSE Report Workflow
-        # For this field, I used the PINSys data field 'Status' by mapping the
-        # PIN term 'Closed' to the SharePoint term 'Completed' and by mapping
-        # the PIN term'Open' to the SharePoint term 'Waiting for Closed.'
-        if status[j] == 'Open':
-            qhseReportWorkflow.append('Waiting for Closed')
-        elif status[j] == 'Closed':
-            qhseReportWorkflow.append('Completed')
+        # Did not see a direct mapping between SharePoint query and HSE data, and
+        # could not determine a value based upon the action steps provided in HSE data.
+        # As a result, left this field blank. Can easily do something different if needed.
+        qhseReportWorkflow.append('')
 
         # InjuryLocation
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed
-        injuryLocation.append('')
+        # Mapped directly to 'Injury Location' in the HSE data.
+        injuryLocation.append(injuryLocation_hse[j])
 
         # InjuryNatureMechanism
-        # Did not see a direct mapping between SharePoint query and PINSys data,
-        # so left this field blank. Can easily do something different if needed
-        injuryNatureMechanism.append('')
+        # Mapped directly to 'Injury Mechanism' in the HSE data.
+        injuryNatureMechanism.append(injuryMechanism[j])
 
         # Primary Root Cause
         # All records for this field are blank in the SharePoint query,
-        # so I left them blank for the PINSys Data as well.
+        # so I left them blank for the HSE Data as well. Can do something else
+        # if needed. (Perhaps 'Nature of Hazard or Observation' might be a fit?).
         primaryRootCause.append('')
 
         # NonProductiveTime
-        # This field in the SharePoint query has been mapped directly to the
-        # field 'NonProductiveTime' in the PINSys data.
-        # (Clock hours in 100ths, precision = 2)
-        nonProductiveTime.append(nonProductiveTime_pin[j])
+        # Did not see a direct mapping between SharePoint query and HSE data,
+        # so left this field blank. Can easily do something different if needed.
+        nonProductiveTime.append('')
 
         # Test XML
         # All records for this field are blank in the SharePoint query,
-        # so I left them blank for the PINSys Data as well.
+        # so I left them blank for the HSE data as well.
         testXML.append('')
 
         # PINType
-        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # Did not see a direct mapping between SharePoint query and HSE data,
         # so left this field blank. Can easily do something different if needed.
         pinType.append('')
 
         # Cost of Poor Quality (USD)
-        # This field in the SharePoint query has been mapped directly to the
-        # field 'DollarCost' in the PINSys data, with a type conversion from
-        # precision 0 to precision 2
-        costOfPoorQuality.append(dollarCost[j])
+        # Did not see a direct mapping between SharePoint query and HSE data,
+        # so left this field blank. Can easily do something different if needed.
+        costOfPoorQuality.append('')
 
         # Job Number
-        # Did not see a direct mapping between SharePoint query and PINSys data,
+        # Did not see a direct mapping between SharePoint query and HSE data,
         # so left this field blank. Can easily do something different if needed.
         jobNumber.append('')
 
         # Item Type
-        # All records for this field in the SharePoint query say 'Item,' so I
-        # continued the pattern with the PINSys Data. No other mapping option was observed.
-        itemType.append('Item')
+        # Mapped directly to 'Item' in the HSE data.
+        itemType.append(itemType_hse[j])
 
         # Path
-        # All records for this field in the SharePoint query say
-        # 'sites/TheRigUp/Lists/IncidentReports'. I did not observe any other
-        # mapping option, so I chose to leave this one blank. Can easily do
-        # something different if needed.
-        path.append('')
+        # Mapped directly to 'Path' in the HSE data.
+        path.append(path_qse[j])
 
         j += 1
 
@@ -302,7 +272,7 @@ def main():
 
     df = pd.DataFrame(df_dict)  # create dataframe
     writer = pd.ExcelWriter(pandas_file)  # create excel writer
-    df.to_excel(writer, 'Historical PIN Sys Data', index=False)  # convert dataframe to xlswriter excel object
+    df.to_excel(writer, 'Historical HSE Sys Data', index=False)  # convert dataframe to xlswriter excel object
     writer.save()  # close the writer and export the excel file
 
     print(df_dict)
