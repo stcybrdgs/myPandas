@@ -19,7 +19,7 @@ def main():
     # rem hse refers to the 'RG HSE Dashboard' xlsx
     hse_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/RG HSE Dashboard.xlsx'
     sheet_name='New Data'  # worksheet name in PINSys xlsx
-    pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/hse_to_sharePoint.xlsx'
+    pandas_file = r'C:/Users/stacy/My WrWx/00_projects/reservoirGroup/Adam/hse_to_sharePoint_output.xlsx'
 
     # perform imports
     data = pd.read_excel(hse_file, sheet_name)
@@ -144,9 +144,9 @@ def main():
 
         # FormStatus
         # Mapped this field to 'Form Closed' in HSE data, such that HSE 'True' = 'Closed' and HSE 'False' = 'In Progress'
-        if formClosed[j] == 'True':
+        if formClosed[j] == True:
             formStatus.append('Closed')
-        elif formClosed[j] == 'False':
+        elif formClosed[j] == False:
             formStatus.append('In Progress')
         else:
             formStatus.append('')
