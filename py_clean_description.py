@@ -1,5 +1,6 @@
 """
 prep the dirty descriptions file by:
+- converting to lower case in excel
 - saving description in a single-column xlsx
 - sort the column
 - delete duplicates
@@ -18,7 +19,7 @@ import numpy as np
 
 # define input files/sheets
 dirty_desc_file = r'C:\Users\stacy\Desktop\IESA Project - Europe\NERS_Projects_IESA\tempFiles\in_description_dirty.xlsx'
-dirty_desc_sheet = 'Sheet1'
+dirty_desc_sheet = 'Dirty Description'
 
 stop_brands_file = r'C:\Users\stacy\Desktop\IESA Project - Europe\NERS_Projects_IESA\tempFiles\in_stop_brands.xlsx'
 stop_brands_sheet = 'Sheet1'
@@ -49,7 +50,6 @@ stop_strings = ['na','n/a','unknown','tbd','tba','unbranded', 'mm', '(dscntd)']
 # clean up the dirty description
 j = 0
 for item in dirty_desc:
-    item = item.lower()  # convert description record to lowercase
     for char in stop_chars:
         item = item.replace(char, '')  # replace special characters
     for num in stop_nums:
